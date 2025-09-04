@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
@@ -13,16 +13,20 @@ RUN apt-get update && apt-get install -y \
 # Copiar archivos de dependencias
 COPY pyproject.toml poetry.lock ./
 
-# Instalar Poetry y dependencias
-RUN pip install poetry && \
-    poetry config virtualenvs.create false && \
-    poetry install --no-dev
+# Instalar Poetry
+RUN pip install poetry
+
+# Configurar Poetry para no crear entorno virtual
+RUN poetry config virtualenvs.create false
+
+# Instalar dependencias
+RUN poetry install --no-root 
 
 # Copiar código de la aplicación
 COPY . .
 
 # Exponer puerto para FastAPI
-EXPOSE 8000
+EXPOSE 8002
 
 # Comando por defecto
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8002"]

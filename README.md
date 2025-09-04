@@ -72,7 +72,6 @@ docker-compose up -d
 docker-compose up rabbitmq -d
 docker-compose up publisher -d  
 docker-compose up subscriber -d
-docker-compose up subscriber-listener -d
 ```
 
 ### 4. Verificar estado de los servicios
@@ -84,7 +83,6 @@ docker ps
 docker logs rabbitmq
 docker logs publisher
 docker logs subscriber
-docker logs subscriber-listener
 ```
 
 ## 🧪 Testing
@@ -103,7 +101,7 @@ cd subscriber && poetry run pytest tests/ -v --cov=. --cov-report=term-missing
 ### Tests con Docker:
 ```bash
 # Ejecutar tests desde containers
-docker exec publisher poetry run test
+docker exec publisher poetry run pytest
 docker exec subscriber poetry run pytest tests/ -v
 ```
 
@@ -135,36 +133,6 @@ docker-compose logs -f [servicio]
 ### APIs
 - Publisher: http://localhost:8001/docs
 - Subscriber: http://localhost:8002/docs
-
-## 🐛 Solución de Problemas
-
-### El subscriber no recibe mensajes
-
-1. **Verificar configuración de RabbitMQ**:
-   - Exchange: `scraping_exchange`
-   - Queue: `scraping_queue`
-   - Routing Key: `scraping`
-
-2. **Verificar que el listener esté corriendo**:
-   ```bash
-   make logs-listener
-   ```
-
-3. **Verificar conexión a RabbitMQ**:
-   ```bash
-   make test-rabbitmq
-   ```
-
-4. **Reiniciar servicios**:
-   ```bash
-   make restart
-   ```
-
-### Reconstruir completamente
-```bash
-make clean
-make rebuild
-```
 
 ## 📁 Estructura del Proyecto
 

@@ -41,6 +41,26 @@
       "arguments": {
         "x-max-priority": 10
       }
+    },
+    {
+      "name": "scraping_results",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 604800000,
+        "x-max-length": 1000
+      }
+    },
+    {
+      "name": "scraping_failed",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 604800000,
+        "x-max-length": 1000
+      }
     }
   ],
   "bindings": [
@@ -50,6 +70,22 @@
       "destination": "scraping_queue",
       "destination_type": "queue",
       "routing_key": "scraping",
+      "arguments": {}
+    },
+    {
+      "source": "scraping_exchange",
+      "vhost": "/",
+      "destination": "scraping_results",
+      "destination_type": "queue",
+      "routing_key": "result",
+      "arguments": {}
+    },
+    {
+      "source": "scraping_exchange",
+      "vhost": "/",
+      "destination": "scraping_failed",
+      "destination_type": "queue",
+      "routing_key": "failed",
       "arguments": {}
     }
   ]

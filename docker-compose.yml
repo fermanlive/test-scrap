@@ -21,7 +21,7 @@ services:
     build: ./publisher
     container_name: publisher
     ports:
-      - "8001:8000"
+      - "8002:8002"
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
@@ -37,7 +37,7 @@ services:
     build: ./subscriber
     container_name: subscriber
     ports:
-      - "8002:8000"
+      - "8001:8001"
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
@@ -48,21 +48,8 @@ services:
     networks:
       - scraping_network
     restart: unless-stopped
-
-  subscriber-listener:
-    build: ./subscriber
-    container_name: subscriber-listener
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=admin
-      - RABBITMQ_PASS=admin123
-    depends_on:
-      - rabbitmq
-    networks:
-      - scraping_network
-    restart: unless-stopped
-    command: ["poetry", "run", "start-listener"]
+    env_file:
+      - ./subscriber/.env  
 
 volumes:
   rabbitmq_data:
