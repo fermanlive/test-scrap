@@ -1,0 +1,96 @@
+[tool.poetry]
+name = "mercadolibre-scraper"
+version = "0.1.0"
+description = "Scraper para Mercado Libre Uruguay usando Playwright con Camouflage Fox"
+authors = ["Daniel Murcia <daniel.murcia@mercadolibre.com.co>"]
+readme = "README.md"
+packages = [{include = "scraper"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+playwright = "^1.40.0"
+camoufox = {extras = ["geoip"], version = "^0.4.11"}
+beautifulsoup4 = "^4.12.0"
+requests = "^2.31.0"
+pandas = "^2.1.0"
+python-dotenv = "^1.0.0"
+loguru = "^0.7.0"
+click = "^8.1.0"
+rich = "^13.7.0"
+# API dependencies
+fastapi = "^0.104.1"
+uvicorn = {extras = ["standard"], version = "^0.24.0"}
+pika = "^1.3.0"
+celery = "^5.3.4"
+pydantic = "^2.5.0"
+python-multipart = "^0.0.6"
+httpx = "^0.26.0"
+supabase = "^2.18.1"
+pytest-coverage = "^0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.0"
+black = "^23.0.0"
+isort = "^5.12.0"
+flake8 = "^6.0.0"
+mypy = "^1.7.0"
+
+[tool.poetry.scripts]
+scrape = "scraper.cli:main"
+start-api = "main:start_api"
+start-worker = "worker:start_worker"
+start-listener = "message_listener:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry-core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+# Configuración de pytest
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# Agregar el directorio actual al PYTHONPATH
+pythonpath = ["."]
+
+# Configuración de asyncio
+asyncio_mode = "auto"
+
+# Marcadores personalizados
+markers = [
+    "unit: marcador para tests unitarios",
+    "integration: marcador para tests de integración",
+    "performance: marcador para tests de rendimiento",
+    "slow: marcador para tests que tardan más tiempo"
+]
+
+# Opciones por defecto
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--show-capture=no"
+]
+
+# Filtros de warnings
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning"
+]

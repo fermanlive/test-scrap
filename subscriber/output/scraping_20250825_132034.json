@@ -1,0 +1,44 @@
+{
+  "metadata": {
+    "url": "https://www.mercadolibre.com.uy/ofertas?category=MLU5725&page=1",
+    "timestamp": "2025-08-25T13:20:34.879517",
+    "total_products": 1,
+    "scraper_version": "1.0.0"
+  },
+  "products": [
+    {
+      "title": "Casco Evolution G7 Negro/rojo - Aprobado - Talle M",
+      "url": "https://articulo.mercadolibre.com.uy/MLU-696564322-casco-evolution-g7-negrorojo-aprobado-talle-m-_JM#polycard_client=offers&deal_print_id=&position=2&tracking_id=&wid=MLU696564322&sid=offers",
+      "seller": "BIELA",
+      "current_price": 2.802,
+      "original_price": null,
+      "discount_percentage": null,
+      "currency": "UYU",
+      "rating": 5.0,
+      "review_count": 1,
+      "stock_quantity": "+10 disponibles",
+      "features": {
+        "Acabado": "Brillante",
+        "Diseño": "Lisa",
+        "Tipo de casco": "Integral",
+        "Estilo de conducción en moto": "Urbano",
+        "Tamaño de circunferencia de la cabeza": "58 cm",
+        "Edad": "Adultos",
+        "Normas de seguridad": "DOT",
+        "Marca": "Pro Tork",
+        "Línea": "G7",
+        "Modelo": "Evolution",
+        "Modelo alfanumérico": "683PTVM",
+        "Color": "Negro",
+        "Materiales del interior": "ABS",
+        "Materiales del exterior": "ABS"
+      },
+      "images": [],
+      "seller_location": null,
+      "shipping_method": "Envío gratis a todo el país",
+      "free_shipping": false,
+      "brand": "Pro Tork",
+      "scraped_at": "2025-08-25T08:20:27.605439"
+    }
+  ]
+}
