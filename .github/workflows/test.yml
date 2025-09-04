@@ -1,0 +1,168 @@
+name: Pruebas Unitarias
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'publisher/**'
+      - 'subscriber/**'
+      - 'validation_ia/**'
+      - '.github/workflows/test.yml'
+
+jobs:
+  test-publisher:
+    name: "Publisher - Tests"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./publisher
+    
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Configurar Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Instalar Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Instalar dependencias
+      run: poetry install --with dev --no-root
+
+    - name: Ejecutar pruebas
+      run: |
+        echo "🧪 Ejecutando pruebas en Publisher..."
+        poetry run pytest tests/ -v
+        echo "✅ Publisher: Todas las pruebas pasaron"
+
+  test-subscriber:
+    name: "Subscriber - Tests"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./subscriber
+    
+    services:
+      rabbitmq:
+        image: rabbitmq:3.12-management-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: test
+          RABBITMQ_DEFAULT_PASS: test
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Configurar Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Instalar Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Instalar dependencias
+      run: poetry install --with dev --no-root
+
+    - name: Instalar Playwright browsers y dependencias
+      run: |
+        poetry run playwright install chromium
+        poetry run playwright install-deps chromium
+
+    - name: Configurar variables de entorno
+      run: |
+        echo "RABBITMQ_URL=amqp://test:test@localhost:5672/" >> $GITHUB_ENV
+        echo "DATABASE_URL=sqlite:///:memory:" >> $GITHUB_ENV
+        echo "LOG_LEVEL=INFO" >> $GITHUB_ENV
+
+    - name: Ejecutar pruebas
+      run: |
+        echo "🧪 Ejecutando pruebas en Subscriber..."
+        poetry run pytest tests/ -v -m "not slow"
+        echo "✅ Subscriber: Todas las pruebas pasaron"
+
+  test-validation-ia:
+    name: "Validation IA - Tests"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./validation_ia
+    
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Configurar Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Instalar Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Instalar dependencias
+      run: poetry install --with dev --no-root
+
+    - name: Configurar variables de entorno
+      run: |
+        echo "OPENAI_API_KEY=test-key-mock" >> $GITHUB_ENV
+        echo "SUPABASE_URL=test-url" >> $GITHUB_ENV
+        echo "SUPABASE_KEY=test-key" >> $GITHUB_ENV
+        echo "LOG_LEVEL=INFO" >> $GITHUB_ENV
+
+    - name: Ejecutar pruebas
+      run: |
+        echo "🧪 Ejecutando pruebas en Validation IA..."
+        poetry run pytest tests/ -v -m "not ai and not database"
+        echo "✅ Validation IA: Todas las pruebas pasaron"
+
+  summary:
+    name: "Resumen Final"
+    runs-on: ubuntu-latest
+    needs: [test-publisher, test-subscriber, test-validation-ia]
+    if: always()
+    
+    steps:
+    - name: Verificar resultados
+      run: |
+        echo "📊 RESUMEN DE PRUEBAS UNITARIAS"
+        echo "======================================"
+        echo ""
+        echo "📦 Publisher: ${{ needs.test-publisher.result }}"
+        echo "🕷️ Subscriber: ${{ needs.test-subscriber.result }}"  
+        echo "🤖 Validation IA: ${{ needs.test-validation-ia.result }}"
+        echo ""
+        
+        if [[ "${{ needs.test-publisher.result }}" == "success" && \
+              "${{ needs.test-subscriber.result }}" == "success" && \
+              "${{ needs.test-validation-ia.result }}" == "success" ]]; then
+          echo "🎉 ¡TODAS LAS PRUEBAS PASARON!"
+          echo "✅ El merge puede proceder"
+          exit 0
+        else
+          echo "❌ ALGUNAS PRUEBAS FALLARON"
+          echo "⚠️  El merge está BLOQUEADO hasta corregir los fallos"
+          exit 1
+        fi
