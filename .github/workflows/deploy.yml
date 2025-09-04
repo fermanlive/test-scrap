@@ -7,5 +7,5 @@
 - name: Conectarse a la VM y desplegar menos rabbitmq
   run: |
     gcloud compute ssh fernando_link32@test-scrapping \
-      --zone=us-central1-a \
+      --zone=us-central1-c	\
       --command="cd /opt/test-scrapg && git pull origin main && docker-compose up -d --build --exclude rabbitmq"
