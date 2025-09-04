@@ -31,30 +31,33 @@ Publisher → RabbitMQ → Subscriber Listener → Scraper Service → PostgreSQ
 ## Casos de uso
 
 ```mermaid
-usecaseDiagram
-    actor Cliente
-    actor Monitor as "Sistema de Monitoreo"
+graph LR
+    %% Definición de actores como nodos
+    Cliente([👤 Cliente])
+    Monitor([🖥️ Sistema de Monitoreo])
 
-    rectangle Subscriber {
-        (Scrape) as UC_Scrape
-        (Health Check) as UC_Health
+    %% Casos de uso como óvalos
+    UC_Scrape(("Iniciar Scrape"))
+    UC_Health(("Health Check"))
 
-        Cliente -- UC_Scrape
-        Monitor -- UC_Health
+    UC_Publicar(("Publicar solicitud de scraping"))
+    UC_Validar(("Validar parámetros"))
+    UC_Encolar(("Encolar mensaje en RabbitMQ"))
+    UC_Responder(("Responder aceptación de tarea"))
+    UC_Verificar(("Verificar estado del servicio"))
 
-        (Publicar solicitud de scraping) as UC_Publicar
-        (Validar parámetros) as UC_Validar
-        (Encolar mensaje en RabbitMQ) as UC_Encolar
-        (Responder aceptación de tarea) as UC_Responder
+    %% Relaciones de actores con casos de uso principales
+    Cliente --> UC_Scrape
+    Monitor --> UC_Health
 
-        UC_Scrape .> UC_Publicar : incluye
-        UC_Scrape .> UC_Validar : incluye
-        UC_Scrape .> UC_Encolar : incluye
-        UC_Scrape .> UC_Responder : incluye
+    %% Relaciones include (simuladas con flechas punteadas)
+    UC_Scrape -.-> UC_Publicar
+    UC_Scrape -.-> UC_Validar
+    UC_Scrape -.-> UC_Encolar
+    UC_Scrape -.-> UC_Responder
 
-        (Verificar estado del servicio) as UC_Verificar
-        UC_Health .> UC_Verificar : incluye
-    }
+    UC_Health -.-> UC_Verificar
+
 ```
 
 
