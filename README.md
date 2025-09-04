@@ -11,6 +11,28 @@ Publisher → RabbitMQ → Subscriber Listener → Scraper Service → PostgreSQ
   (Port 8001)                Consumer     Automation      Persistencia
 ```
 
+![Logo del proyecto](./docs/arch.png)
+
+
+
+## Continuous Integration and Continuous Deployment (CI/CD)
+
+Continuous Integration – CI:
+Para esta implementación se planteó realizar únicamente pruebas unitarias en las carpetas validacion_ia, publisher y subscriber.
+Cada una cuenta con su propio job independiente, ejecutando pruebas unitarias a través de GitHub Actions.
+Estos tres jobs se integran en un reporte final sencillo para el usuario.
+Sin embargo, es importante recalcar que estas validaciones son informativas y no influyen en la aprobación del pull request (PR).
+
+Continuous Deployment – CD:
+Basado en la arquitectura definida, se busca generar impacto y facilidad de mantenimiento.
+El mayor valor está en el scraper: aunque su aporte es relevante, lo fundamental es contar con una solución monolítica, fácil de mantener y de controlar, que permita gestionar todo el proceso en una sola ventana (one single window).
+
+El flujo de despliegue es simple: se realiza un pull sobre la rama principal y se levantan nuevamente los servicios, con excepción de RabbitMQ.
+Esto permite que, en caso de ser necesario, el rollback sea rápido y confiable.
+El resultado es una solución sólida, resiliente y auto-administrada, que ejecuta despliegues automáticos después de cada merge en main.
+
+Actualmente, las ramas no se encuentran protegidas.
+
 ## 🚀 Servicios
 
 - **RabbitMQ**: Message broker (Puerto 15672 para management)
@@ -32,34 +54,20 @@ Publisher → RabbitMQ → Subscriber Listener → Scraper Service → PostgreSQ
 
 ```mermaid
 graph LR
-    %% Definición de actores como nodos
+    %% Actores
     Cliente([👤 Cliente])
     Monitor([🖥️ Sistema de Monitoreo])
 
-    %% Casos de uso como óvalos
-    UC_Scrape(("Iniciar Scrape"))
+    %% Casos de uso
+    UC_Ejecutar(("Ejecutar tarea de Scrape"))
+    UC_CrearEjecutar(("Crear y ejecutar tarea de Scrape"))
     UC_Health(("Health Check"))
 
-    UC_Publicar(("Publicar solicitud de scraping"))
-    UC_Validar(("Validar parámetros"))
-    UC_Encolar(("Encolar mensaje en RabbitMQ"))
-    UC_Responder(("Responder aceptación de tarea"))
-    UC_Verificar(("Verificar estado del servicio"))
-
-    %% Relaciones de actores con casos de uso principales
-    Cliente --> UC_Scrape
+    %% Relaciones
+    Cliente --> UC_Ejecutar
+    Cliente --> UC_CrearEjecutar
     Monitor --> UC_Health
-
-    %% Relaciones include (simuladas con flechas punteadas)
-    UC_Scrape -.-> UC_Publicar
-    UC_Scrape -.-> UC_Validar
-    UC_Scrape -.-> UC_Encolar
-    UC_Scrape -.-> UC_Responder
-
-    UC_Health -.-> UC_Verificar
-
 ```
-
 
 ## 🛠️ Instalación y Uso
 
