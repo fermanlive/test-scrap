@@ -188,6 +188,9 @@ poetry run test
 # Subscriber - Tests unitarios
 cd subscriber
 poetry run pytest tests/ -v
+
+cd validation_ia
+poetry run pytest tests/ -v
 ```
 
 #### Tests con cobertura
@@ -198,6 +201,9 @@ poetry run pytest tests/ --cov=. --cov-report=term-missing
 
 # Subscriber
 cd subscriber
+poetry run pytest tests/ -v --cov=. --cov-report=term-missing
+
+cd validation_ia
 poetry run pytest tests/ -v --cov=. --cov-report=term-missing
 ```
 
@@ -217,14 +223,11 @@ poetry run pytest -m unit -v
 poetry run pytest -m "not slow" -v
 ```
 
-#### Tests de integración
+### Tests con Docker:
 ```bash
-# Subscriber - Tests de integración completos
-cd subscriber
-poetry run pytest tests/test_main_integration.py -v
-
-# Solo tests de rendimiento
-poetry run pytest -m performance -v
+# Ejecutar tests desde containers
+docker exec publisher poetry run pytest
+docker exec subscriber poetry run pytest tests/ -v
 ```
 
 #### Modo detallado y debugging
@@ -254,6 +257,28 @@ poetry run pytest tests/ --cov=main --cov=manager --cov-report=term-missing
 # Cobertura con límite mínimo
 poetry run pytest tests/ --cov=. --cov-fail-under=80
 ```
+
+## 📊 Monitoreo
+
+### RabbitMQ Management
+- URL: http://localhost:15672
+- Usuario: `admin`
+- Contraseña: `admin123`
+
+### APIs
+- Publisher: http://localhost:8001/docs
+- Subscriber: http://localhost:8002/docs
+
+## 💾 Persistencia de Datos
+
+### Base de Datos: PostgreSQL (Supabase)
+Los productos scrapeados se almacenan en una tabla `products` con la siguiente estructura:
+
+- **ID único**: UUID generado automáticamente
+- **Metadatos**: Categoría, página, fecha de scraping
+- **Información del producto**: Título, URL, vendedor, precios
+- **Características**: Rating, reviews, stock, features (JSONB)
+- **Auditoría**: Timestamps de creación y actualización
 
 ## 🌍 Ambiente de Desarrollo
 
