@@ -1,0 +1,11 @@
+- name: Configurar gcloud
+  uses: google-github-actions/setup-gcloud@v2
+  with:
+    service_account_key: ${{ secrets.GCP_SA_KEY }}
+    project_id: personal-387123
+
+- name: Conectarse a la VM y desplegar menos rabbitmq
+  run: |
+    gcloud compute ssh fernando_link32@test-scrapping \
+      --zone=us-central1-a \
+      --command="cd /opt/test-scrapg && git pull origin main && docker-compose up -d --build --exclude rabbitmq"
