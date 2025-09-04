@@ -1,0 +1,72 @@
+
+services:
+  rabbitmq:
+    build: ./adicionales/rabbitmq
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./adicionales/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./adicionales/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+      - ./adicionales/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+    networks:
+      - scraping_network
+
+  publisher:
+    build: ./publisher
+    container_name: publisher
+    ports:
+      - "8001:8000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=admin
+      - RABBITMQ_PASS=admin123
+    depends_on:
+      - rabbitmq
+    networks:
+      - scraping_network
+    restart: unless-stopped
+
+  subscriber:
+    build: ./subscriber
+    container_name: subscriber
+    ports:
+      - "8002:8000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=admin
+      - RABBITMQ_PASS=admin123
+    depends_on:
+      - rabbitmq
+    networks:
+      - scraping_network
+    restart: unless-stopped
+
+  subscriber-listener:
+    build: ./subscriber
+    container_name: subscriber-listener
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=admin
+      - RABBITMQ_PASS=admin123
+    depends_on:
+      - rabbitmq
+    networks:
+      - scraping_network
+    restart: unless-stopped
+    command: ["poetry", "run", "start-listener"]
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  scraping_network:
+    driver: bridge
