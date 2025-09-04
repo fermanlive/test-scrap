@@ -27,4 +27,4 @@ jobs:
         run: |
           gcloud compute ssh fernando_link32@test-scrapping \
             --zone=us-central1-c \
-            --command="cd /opt/test-scrapping && git pull origin main && docker-compose up -d --build publisher subscriber validation_ia"
+            --command="cd /opt/test-scrapping && git pull origin main && docker-compose up -d --build publisher subscriber"
