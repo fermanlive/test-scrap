@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
@@ -30,7 +30,7 @@ RUN pip install poetry
 RUN poetry config virtualenvs.create false
 
 # Instalar dependencias
-RUN poetry install --no-dev
+RUN poetry install --only=main
 
 # Copiar código fuente
 COPY . .
@@ -46,4 +46,5 @@ RUN mkdir -p logs output
 EXPOSE 8000
 
 # Comando por defecto (API)
-CMD ["poetry", "run", "start-api"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+

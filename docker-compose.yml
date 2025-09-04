@@ -21,7 +21,7 @@ services:
     build: ./publisher
     container_name: publisher
     ports:
-      - "8001:8000"
+      - "8002:8002"
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
@@ -37,7 +37,7 @@ services:
     build: ./subscriber
     container_name: subscriber
     ports:
-      - "8002:8000"
+      - "8001:8001"
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
