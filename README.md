@@ -26,6 +26,38 @@ Publisher → RabbitMQ → Subscriber Listener → Scraper Service → PostgreSQ
 - Poetry (para desarrollo local)
 - Cuenta de Supabase (PostgreSQL)
 
+
+
+## Casos de uso
+
+```mermaid
+usecaseDiagram
+    actor Cliente
+    actor Monitor as "Sistema de Monitoreo"
+
+    rectangle Subscriber {
+        (Scrape) as UC_Scrape
+        (Health Check) as UC_Health
+
+        Cliente -- UC_Scrape
+        Monitor -- UC_Health
+
+        (Publicar solicitud de scraping) as UC_Publicar
+        (Validar parámetros) as UC_Validar
+        (Encolar mensaje en RabbitMQ) as UC_Encolar
+        (Responder aceptación de tarea) as UC_Responder
+
+        UC_Scrape .> UC_Publicar : incluye
+        UC_Scrape .> UC_Validar : incluye
+        UC_Scrape .> UC_Encolar : incluye
+        UC_Scrape .> UC_Responder : incluye
+
+        (Verificar estado del servicio) as UC_Verificar
+        UC_Health .> UC_Verificar : incluye
+    }
+```
+
+
 ## 🛠️ Instalación y Uso
 
 ### 1. Clonar el repositorio
@@ -98,41 +130,7 @@ cd publisher && poetry run test
 cd subscriber && poetry run pytest tests/ -v --cov=. --cov-report=term-missing
 ```
 
-### Tests con Docker:
-```bash
-# Ejecutar tests desde containers
-docker exec publisher poetry run pytest
-docker exec subscriber poetry run pytest tests/ -v
-```
 
-## 🔧 Comandos Útiles
-
-```bash
-# Detener todos los servicios
-docker-compose down
-
-# Reconstruir servicios
-docker-compose build --no-cache
-docker-compose up -d
-
-# Limpiar completamente
-docker-compose down -v
-docker system prune -f
-
-# Ver logs en tiempo real
-docker-compose logs -f [servicio]
-```
-
-## 📊 Monitoreo
-
-### RabbitMQ Management
-- URL: http://localhost:15672
-- Usuario: `admin`
-- Contraseña: `admin123`
-
-### APIs
-- Publisher: http://localhost:8001/docs
-- Subscriber: http://localhost:8002/docs
 
 ## 📁 Estructura del Proyecto
 
@@ -152,52 +150,64 @@ docker-compose logs -f [servicio]
 
 ## 🔄 Flujo de Trabajo
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as Cliente
+    participant Publisher as Publisher (API)
+    participant RabbitMQ as RabbitMQ
+    participant Listener as Subscriber Listener
+    participant Scraper as Scraper Service (Playwright/Camoufox)
+    participant DB as PostgreSQL (Supabase)
+    participant API as Subscriber API
+
+    Client->>Publisher: 1) Solicita tarea de scraping
+    Publisher->>RabbitMQ: 2) Encola mensaje de scraping
+    RabbitMQ-->>Listener: 3) Entrega mensaje
+    Listener->>Scraper: 4) Ejecuta scraping
+    Scraper-->>Listener: Retorna productos y estado
+    Listener->>DB: 5) Persiste productos
+    Listener->>DB: 6) Actualiza estado de tarea
+    Client->>API: 7) Consulta estado/resultados
+    API->>DB: Lee estado/resultados
+    API-->>Client: Respuesta con estado/resultados
+```
+
 1. **Publisher** recibe solicitud de scraping via API REST
 2. **Publisher** envía mensaje a RabbitMQ
 3. **Subscriber Listener** recibe mensaje de la cola
-4. **Subscriber Listener** ejecuta scraping con Playwright/Camoufox
+4. **Subscriber Listener** ejecuta scraping con Playwright
 5. **Subscriber Listener** guarda productos en PostgreSQL (Supabase)
 6. **Subscriber Listener** actualiza estado de la tarea
 7. **Subscriber API** permite consultar estado y resultados
 
-## 💾 Persistencia de Datos
+## Paso a Paso - Detalle 
+En el localhost:8002/docs#/default/publish_scraping_request_publish_post
 
-### Base de Datos: PostgreSQL (Supabase)
-Los productos scrapeados se almacenan en una tabla `products` con la siguiente estructura:
+para produccion:
 
-- **ID único**: UUID generado automáticamente
-- **Metadatos**: Categoría, página, fecha de scraping
-- **Información del producto**: Título, URL, vendedor, precios
-- **Características**: Rating, reviews, stock, features (JSONB)
-- **Auditoría**: Timestamps de creación y actualización
+http://34.58.117.158:8002/docs#/default/publish_scraping_request_publish_post
 
-### Configuración de Supabase:
-1. Crear proyecto en [Supabase](https://supabase.com)
-2. Ejecutar [`subscriber/database/products.sql`](subscriber/database/products.sql) en SQL Editor
-3. Configurar variables en `subscriber/.env`:
-   ```bash
-   SUPABASE_URL=https://tu-proyecto.supabase.co
-   SUPABASE_KEY=tu-service-key
-   ```
+```json
+{
+  "url": "https://www.mercadolibre.com.uy/ofertas?",
+  "category": "MLU1384",
+  "page": 1
+}
+```
+
+Donde enviara la peticion para extraer todos los elementos de esa pagina definida y para esa categoria.
+
+Los resultados se podran ver en la base de datos o en su defecto, a traves de los logs.
+
 
 ## 📝 Variables de Entorno
 
-```bash
-# RabbitMQ
-RABBITMQ_HOST=localhost
-RABBITMQ_PORT=5672
-RABBITMQ_USER=admin
-RABBITMQ_PASS=admin123
+Para subscriber:
+El archivo de `.env` debe estar en la ruta `subscriber/.env`
 
-# API
-API_HOST=0.0.0.0
-API_PORT=8000
-API_DEBUG=false
-
-# Supabase (PostgreSQL)
-SUPABASE_URL=https://tu-proyecto.supabase.co
-SUPABASE_KEY=tu-service-key
-```
+Para Validation IA (punto numero 2 ) :
+El archivo de `.env` debe estar en la ruta `subscriber/.env`
 
 ## 📚 Documentación Detallada
 
@@ -206,16 +216,20 @@ Para información más completa, consulta la carpeta [`docs/`](docs/):
 - 🚀 **[Guía de Despliegue](docs/DEPLOYMENT.md)**: Proceso paso a paso para poner en funcionamiento el sistema
 - 🛠️ **[Guía de Desarrollo](docs/DEVELOPMENT.md)**: Información técnica para desarrolladores, tests y arquitectura
 - 📖 **[Índice de Documentación](docs/README.md)**: Navegación y enlaces rápidos
+- **[Detalles para Validation IA](validation_ia\README.md)**
 
-## 🤝 Contribución
 
-1. Fork el proyecto
-2. Crear rama feature (`git checkout -b feature/AmazingFeature`)
-3. Ejecutar tests: `cd subscriber && poetry run pytest tests/ -v`
-4. Commit cambios (`git commit -m 'Add some AmazingFeature'`)
-5. Push a la rama (`git push origin feature/AmazingFeature`)
-6. Abrir Pull Request
+# Parte 2 
+## 🚀 Entrypoint
 
-## 📄 Licencia
+El sistema tiene **un único punto de entrada**:
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+```bash
+
+cd validation_ia
+
+poetry run python main.py
+```
+
+Por favor ver con mas detalle en  **[Detalles para Validation IA](validation_ia\README.md)** .
+
