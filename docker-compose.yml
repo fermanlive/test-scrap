@@ -49,21 +49,6 @@ services:
       - scraping_network
     restart: unless-stopped
 
-  subscriber-listener:
-    build: ./subscriber
-    container_name: subscriber-listener
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=admin
-      - RABBITMQ_PASS=admin123
-    depends_on:
-      - rabbitmq
-    networks:
-      - scraping_network
-    restart: unless-stopped
-    command: ["poetry", "run", "start-listener"]
-
 volumes:
   rabbitmq_data:
 
