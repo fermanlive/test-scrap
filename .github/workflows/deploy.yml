@@ -1,11 +1,24 @@
-- name: Configurar gcloud
-  uses: google-github-actions/setup-gcloud@v2
-  with:
-    service_account_key: ${{ secrets.GCP_SA_KEY }}
-    project_id: personal-387123
+name: Deploy con gcloud
 
-- name: Conectarse a la VM y desplegar menos rabbitmq
-  run: |
-    gcloud compute ssh fernando_link32@test-scrapping \
-      --zone=us-central1-c	\
-      --command="cd /opt/test-scrapg && git pull origin main && docker-compose up -d --build --exclude rabbitmq"
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configurar gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: personal-387123
+
+      - name: Conectarse a la VM y desplegar menos rabbitmq
+        run: |
+          gcloud compute ssh fernando_link32@test-scrapping \
+            --zone=us-central1-c \
+            --command="cd /opt/test-scrapping && git pull origin main && docker-compose up -d --build publisher subscriber validation_ia"
